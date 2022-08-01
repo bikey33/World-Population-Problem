@@ -1,0 +1,164 @@
+<script>
+    // targeting the post_btn click event to do something
+    //Insert Data
+$("#post_btn").click(function(){
+    console.log("Post Clicked");
+    // Getting values from each input Fields
+    let country = $("#country_select").val();
+    console.log(country)
+    let city = $("#city").val();
+    let male = $("#male").val();
+    let female = $("#female").val();
+    let child = $("#child").val();
+    if( city == ""){
+        // Validating the data to ensure no empty data will go to server
+        //console.log("Please Enter City");
+        $("#valid_alert").show();
+                    setTimeout(function () {
+                        $("#valid_alert").hide();
+                    }, 15000);
+    }
+    else if( country == "Choose A country"){
+
+        //console.log("Please Enter Country");
+        // Showing alert Message and Hiding it after 15 seconds
+        $("#valid_alert").show();
+                    setTimeout(function () {
+                        $("#valid_alert").hide();
+                    }, 15000);
+    }
+    else if( (male == "" )|| (female == "") || (child == "")){
+
+        //console.log("Please Enter the Population Data Properly");
+        $("#valid_alert").show();
+                    setTimeout(function () {
+                        $("#valid_alert").hide();
+                    }, 15000);
+    }
+
+    else{
+        // Keeping data in one Place
+        mydata = {city: city, man_population:male, woman_population:female, child_population: child};
+        console.log(mydata)
+        $.ajax({
+            url : "{% url 'post_data' %}",
+            method : "POST",
+            // Sending CSRF Token other wise i might get error
+            headers:{'X-CSRFToken':'{{ csrf_token }}'},
+            data : mydata,
+            success: function(data){
+                // Show success message
+                if(data.status == "saved") {
+                    $("#myalert").show();
+                    setTimeout(function () {
+                        $("#myalert").hide();
+                    }, 15000);
+                    //console.log(data.city_data);
+                    // Reset the form
+                    $("form")[0].reset();
+                    x = data.city_data;
+                    output = "";
+                    for (i = 0; i<x.length;i++){
+                        output += "<tr><td>" + x[i].id +"</td><td>"+ x[i].city +"</td><td>"
+                        + x[i].man_population +"</td><td>" + x[i].woman_population + "</td><td>"+
+                            x[i].child_population +"</td><td> <button type='button'  class='btn btn-danger btn-show' data-sid = " +x[i].id+">See Graphs</button> </td></tr>";
+                    }
+                    $("#tbody").html(output);
+
+
+                    //Sending about output html i.e rendered table inplace of targeted table
+                }
+                else{
+                    console.log("Failed to Post Data")
+
+                }
+            }
+        })
+
+
+    }
+
+        return false;
+
+});
+
+// Show Graphs when button on the tables are clicked
+    $("tbody").on("click", ".btn-show", function(){
+        console.log("Show Graphs Button Clicked");
+        let id = $(this).attr("data-sid");
+        console.log(id);
+        mydata = {sid: id};
+        $.ajax({
+            // Send id of pressed button to server
+            url: "{% url 'get_plot_data'%}",
+            method: "POST",
+            headers:{'X-CSRFToken':'{{ csrf_token }}'},
+            data: mydata,
+            success: function (data) {
+                console.log(data);
+                var state={
+                    'items': [],
+                    'values':[],
+
+                }
+                // Get Data corrosponding to a database row
+                state.items.push('Male Population');
+                state.items.push('Female Population');
+                state.items.push('Child Population');
+                // Push items and values data extracted from server side response to new variable called state
+                //
+                state.values.push(data.male);
+                state.values.push(data.female);
+                state.values.push(data.child);
+                let detail = ("Graphs of Population Distribution of ").concat(data.city);
+                buildChart(state,detail); // function call to build chart
+
+                return false;
+
+        }
+
+    });
+    });
+function buildChart (state,detail){
+                 var chartData = {
+                     //chart configurations
+                    "type": "bar",
+                     plot: {
+                         styles: [ "#d62c20", "#20d657", "#3287a8" ] /* Bar Fill by Node */
+                    },
+                    title: {
+                        text: detail,
+                        fontSize: 24,
+                    },
+                    "scale-x": {
+                        label: {
+                            text: " Types of Population",
+                            fontSize: 18,
+                                 },
+                        item: {
+                        'font-size': 18
+                            },
+                        "values": state.items
+                    },
+                       "scale-y": {
+                         short: true,
+                           label: {
+                            text: " Types of Population",
+                            fontSize: 18,
+                                 },
+                       },
+
+                    "series":[
+                        {
+                        "values" : state.values
+                }
+                    ]
+                }
+                zingchart.render({
+                    //rendering chart
+                    id: 'myChart1',
+                    data: chartData,
+                    });
+
+        }
+</script>

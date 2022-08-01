@@ -1,0 +1,240 @@
+{% extends 'base.html' %}
+{% block content %}
+    <script src="https://cdn.zingchart.com/zingchart.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
+
+    <div class='container mt-5'>
+    <h2 class ="text-center alert alert-danger"> Welcome to World Population Database</h2>
+     <br/>
+        <div class = "row">
+          <div class = "col-sm-4">
+              <h4 class = "text-center alert alert-info"> Data Entry</h4>
+                        <div class="card">
+                          <div class="card-header">
+                            Enter Data to Population Database
+                            </div>
+                          <div class="card-body">
+                              {% if user.is_authenticated %}
+                                    <form method="post" action = "" class="needs-validation" novalidate id="forms">
+                                        {% csrf_token %}
+                                            <div class="mb-3">
+                                                <label for="exampleFormControlInput1" class="form-label"><h6> Enter a Country Name</h6></label>
+                                                <select class="form-select" id="country_select" name="select">
+                                                    <option selected>Choose A country</option>
+                                                    <option value="1">Nepal</option>
+                                                    <option value="2">India</option>
+                                                    <option value="2">USA</option>
+                                                    <option value="2">Australia</option>
+                                                    <option value="2">Japan</option>
+
+                                                </select>
+                                                 <div class="invalid-feedback">
+                                                    Please Select a Valid Country Name
+                                                </div>
+
+                                            </div>
+                                             <div class="mb-3">
+                                                <label for="exampleFormControlInput1" class="form-label"><h6> Enter a City Name</h6></label>
+                                                 <input type="text" class="form-control" id="city" placeholder="Enter a City Name" name = "city">
+                                             </div>
+                                            <div class="mb-3">
+                                                <label for="exampleFormControlInput1" class="form-label"><h6>Male Population</h6></label>
+                                                <input type="text" class="form-control" id="male" placeholder="Male Population in that City" name ="male">
+                                                <div class="invalid-feedback">
+                                                    Please enter Valid Number
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="exampleFormControlInput1" class="form-label"><h6>Male Population</h6></label>
+                                                <input type="text" class="form-control" id="female" placeholder="Female Population in that City" name ="female">
+                                                    <div class="invalid-feedback">
+                                                        Please enter Valid Number
+                                                     </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="exampleFormControlInput1" class="form-label"><h6>Child Population</h6></label>
+                                                <input type="text" class="form-control" id="child" placeholder="Child Population in that City" name ="child">
+                                                    <div class="invalid-feedback">
+                                                         Please enter Valid Number
+                                                    </div>
+                                            </div>
+                                       <button type="submit" id = "post_btn" class = "btn btn-primary">Post Data</button>
+                                    </form>
+                                      <br/>
+                                      <div class="alert alert-warning" id= "valid_alert" style="display: none" role="alert">
+                                                          <h6><b> Blank Fields or Invalid Numbers.</b> </h6>
+                                      </div>
+                                      </div>
+                            {% else %}
+
+                                    <div class="alert alert-light" role="alert">
+                                        <h4>You can not Enter Data if you are not authorized!! Please login first.</h4>
+                                        <br/>
+                                        <a href = "{% url 'login' %}" class="btn btn-success" role="button">Log In</a>
+                                    </div>
+                        </div>
+                          {% endif %}
+                </div>
+        </div>
+            <div class="col-sm-7">
+                <h4 class = "text-center alert alert-info"> Population Database</h4>
+                <div class = "container">
+                    <div class="jumbotron">
+                        <div class="card">
+                          <div class="card-header">
+                            Countries In Our Databases
+                            </div>
+                          <div class="card-body">
+                              <table class="table table-dark table-striped table-hover table-bordered">
+                                  <thead>
+                                    <tr>
+                                      <th scope="col">#</th>
+                                      <th scope="col">City Name</th>
+                                      <th scope="col">Male Population</th>
+                                      <th scope="col">Female Population</th>
+                                        <th scope="col">Child Population</th>
+                                        <th scope="col">Actions</th>
+
+
+                                    </tr>
+                                  </thead>
+                                  <tbody id="tbody">
+                                   {% for row in population %}
+                                          <tr>
+                                              <td>{{ row.id }}</td>
+                                              <td>{{ row.city }}</td>
+                                              <td>{{ row.man_population }}</td>
+                                                <td>{{ row.woman_population }}</td>
+                                              <td>{{ row.child_population }}</td>
+
+                                                <td>
+                                                    <button type="button" data-sid = " {{ row.id }}" class="btn btn-danger btn-show">See Graphs</button>
+                                                </td>
+                                          </tr>
+                                  {% endfor %}
+                                  </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    </br>
+    <br/>
+        <div class = "container">
+
+            <div class="alert alert-success" id= "myalert" style="display: none" role="alert">
+                <h6><b> Data is added sucessfully.</b> </h6>
+            </div>
+        </div>
+
+    </br>
+
+    <div class = "container">
+            <div class="jumbotron">
+                <div class="card">
+                  <div class="card-body">
+                      <br/>
+                      <br/>
+                      <div id= "myChart1">
+
+                        </div>
+                  </div>
+                </div>
+
+                </br>
+                </br>
+            </div>
+        </div>
+
+        <div class = "container">
+            <div class="jumbotron">
+                <div class="card">
+                  <div class="card-body">
+                    <h5 class="card-title">See Country Wise Total Population Distribution</h5>
+                    <button type="button" class="btn btn-danger" onclick="show_chart()">Countrywise Population</button>
+
+                      <br/>
+                      <br/>
+                      <div id= "myChart">
+
+                        </div>
+                  </div>
+                </div>
+
+                </br>
+                </br>
+            </div>
+        </div>
+    {% include "ajax.html" %}
+        <script>
+            function show_chart(){
+                var state={
+                        'items': [],
+                        'values':[],
+
+                }
+                var dataURL = `/get_total/`
+                $.ajax({
+                  method: 'GET',
+                  url: dataURL,
+                    success: function (response){
+                      console.log('RESPONSE:', response)
+                        for (var i in response){
+                           var key = Object.keys(response[i])[0]
+                            var value = Object.values(response[i])[0]
+                            state.items.push(key)
+                            state.values.push(value)
+                        }
+                        console.log('STATE:',state)
+                        buildChart()
+
+                    }
+                })
+               function buildChart(){
+                     var chartData = {
+                        "type": "bar",
+                        title: {
+                            text: 'Population Distribution of different Countries',
+                            fontSize: 24,
+                        },
+                        "scale-x": {
+                            label: {
+                                text: " Types of Population",
+                                fontSize: 18,
+                                     },
+                            item: {
+                            'font-size': 18
+                                },
+                            "values": state.items
+
+                        },
+                         "scale-y": {
+                             short: true,
+                               label: {
+                                text: " Types of Population",
+                                fontSize: 18,
+                                     },
+                           },
+                        "series":[
+                            {
+                            "values" : state.values
+                    }
+                        ]
+                    }
+                    zingchart.render({
+                        id: 'myChart',
+                        data: chartData,
+
+                        });
+                }
+            }
+        </script>
+{% endblock %}

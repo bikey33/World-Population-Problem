@@ -38,7 +38,7 @@ $("#post_btn").click(function(){
 
     else{
         // Keeping data in one Place
-        mydata = {city: city, man_population:male, woman_population:female, child_population: child};
+        mydata = {country:country,city: city, man_population:male, woman_population:female, child_population: child};
         console.log(mydata)
         $.ajax({
             url : "{% url 'post_data' %}",

@@ -55,13 +55,19 @@ def post_data(request):
     # Handling AJax Post Request
     if request.method == "POST":
         form = PopulationForm(request.POST)
+
+        country = request.POST['country']
+        print(country)
+        con = Country()
+        con.country = country
+        con.save()
         city_name = request.POST['city']
         #print(city_name)
         male = request.POST['man_population']
         female = request.POST['woman_population']
         child = request.POST['child_population']
         try:
-            city_p = Population(city=city_name, man_population=male, woman_population=female, child_population=child)
+            city_p = Population(country = con,city=city_name, man_population=male, woman_population=female, child_population=child)
             city_p.save()
             # to send data back to template to render on table
             # After sucessfull posting of data
